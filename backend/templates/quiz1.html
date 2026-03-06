@@ -1,0 +1,63 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+
+<h3>Question {{ qno }}</h3>
+
+<p><b>{{ question.question }}</b></p>
+
+<form method="POST">
+    <input type="radio" name="answer" value="A"> A) {{ question.option_A }}<br>
+    <input type="radio" name="answer" value="B"> B) {{ question.option_B }}<br>
+    <input type="radio" name="answer" value="C"> C) {{ question.option_C }}<br>
+    <input type="radio" name="answer" value="D"> D) {{ question.option_D }}<br><br>
+    {% if session.get("show_explanation") %}
+    <hr>
+    <p><b>{{ session.get("feedback") }}</b></p>
+    <p><b>Explanation:</b> {{ session.get("explanation") }}</p>
+{% endif %}
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+
+<h3>Question {{ qno }}</h3>
+<p><b>Score: {{ score }}</b></p>
+
+<p><b>{{ question.question }}</b></p>
+
+{% if not show_explanation %}
+<form method="POST">
+    <input type="radio" name="answer" value="A" required> A) {{ question.option_A }}<br>
+    <input type="radio" name="answer" value="B"> B) {{ question.option_B }}<br>
+    <input type="radio" name="answer" value="C"> C) {{ question.option_C }}<br>
+    <input type="radio" name="answer" value="D"> D) {{ question.option_D }}<br><br>
+
+    <button type="submit">Submit</button>
+</form>
+{% endif %}
+
+{% if show_explanation %}
+    <hr>
+    <p><b>{{ feedback }}</b></p>
+    <p><b>Explanation:</b> {{ explanation }}</p>
+
+    <form method="POST">
+        <button type="submit">Next Question</button>
+    </form>
+{% endif %}
+
+</body>
+</html>

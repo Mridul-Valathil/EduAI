@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAI · Single Page Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --surface: rgba(255, 255, 255, 0.4);
+            --surface-hover: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.5);
+            --text-dark: #1f2937;
+            --text-light: #4b5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Navbar Glassmorphism */
+        .navbar {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: var(--surface);
+            color: var(--primary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        main {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h2.title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        /* Form & Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .file-drop {
+            border: 2px dashed rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .file-drop:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 50px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Loading Overlay Overlay */
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(102, 126, 234, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Topic Items */
+        .topic-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .pill-high {
+            background: #e74c3c;
+        }
+
+        .pill-medium {
+            background: #f39c12;
+        }
+
+        .pill-low {
+            background: #2ecc71;
+        }
+
+        .topic-card {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 6px solid #ccc;
+        }
+
+        .topic-card.high {
+            border-left-color: #e74c3c;
+        }
+
+        .topic-card.medium {
+            border-left-color: #f39c12;
+        }
+
+        .topic-card.low {
+            border-left-color: #2ecc71;
+        }
+
+        .topic-summary {
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Quiz elements */
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .option-btn.wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        /* Mock Paper styling */
+        #mock-content {
+            white-space: pre-wrap;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">EduAI</div>
+        <div class="nav-links" id="nav-actions">
+            <button class="nav-btn active" onclick="showSection('home')">Home</button>
+            <button class="nav-btn" onclick="fetchTopics()" id="nav-topics" style="display:none;">Topics</button>
+            <button class="nav-btn" onclick="startQuiz()" id="nav-quiz" style="display:none;">Quiz</button>
+            <button class="nav-btn" onclick="generateMock()" id="nav-mock" style="display:none;">Mock Paper</button>
+        </div>
+    </nav>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <h3 id="loader-text" style="color: var(--text-dark); margin-top: 20px;">Processing...</h3>
+    </div>
+
+    <main>
+        <!-- Home / Upload Section -->
+        <section id="home" class="section glass-card active">
+            <h2 class="title">Upload Materials</h2>
+            <p class="subtitle">Provide your curriculum files to generate personalized insights and assessments.</p>
+
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label class="form-label">Syllabus PDF</label>
+                    <input type="file" id="syllabus" accept=".pdf" class="file-drop" required style="width:100%">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Textbook / Main Material PDF</label>
+                    <input type="file" id="textbook" accept=".pdf" class="file-drop" required style="width:100%">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Previous Year Questions (PYQs) PDFs</label>
+                    <input type="file" id="pyq" accept=".pdf" multiple class="file-drop" required style="width:100%">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Quiz Difficulty Level</label>
+                    <select id="difficulty">
+                        <option value="Easy">Easy</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Process Documents</button>
+            </form>
+        </section>
+
+        <!-- Topics Section -->
+        <section id="topics" class="section glass-card">
+            <h2 class="title">Syllabus Topic Analysis</h2>
+            <p class="subtitle">AI-generated exam focus based on PYQ relevance.</p>
+            <div id="topics-container"></div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="quiz" class="section glass-card">
+            <h2 class="title" id="quiz-title">Skill Assessment</h2>
+            <div id="quiz-container"></div>
+            <div id="quiz-feedback" style="margin-top: 20px; display: none;">
+                <p id="quiz-explanation"
+                    style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                </p>
+                <button class="btn" onclick="startQuiz()">Next Question</button>
+            </div>
+        </section>
+
+        <!-- Mock Paper Section -->
+        <section id="mock" class="section glass-card">
+            <h2 class="title">Generated Mock Examination</h2>
+            <p class="subtitle">Based on the uploaded PYQ template format.</p>
+            <div id="mock-content"></div>
+            <button class="btn btn-outline" style="margin-top:20px;" onclick="window.print()">Print Paper</button>
+        </section>
+
+    </main>
+
+    <script>
+        // Check initial status
+        fetch('/api/status').then(r => r.json()).then(data => {
+            if (data.uploaded) {
+                unlockFeatures();
+            }
+        });
+
+        // UI Helpers
+        function showLoader(msg = "Processing...") {
+            document.getElementById('loader-text').innerText = msg;
+            document.getElementById('loader').style.display = 'flex';
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.toLowerCase().includes(sectionId.split('-')[0]));
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function unlockFeatures() {
+            document.getElementById('nav-topics').style.display = 'block';
+            document.getElementById('nav-quiz').style.display = 'block';
+            document.getElementById('nav-mock').style.display = 'block';
+        }
+
+        // Upload flow
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('textbook', document.getElementById('textbook').files[0]);
+            formData.append('syllabus', document.getElementById('syllabus').files[0]);
+            formData.append('difficulty', document.getElementById('difficulty').value);
+
+            const pyqFiles = document.getElementById('pyq').files;
+            for (let i = 0; i < pyqFiles.length; i++) {
+                formData.append('pyq', pyqFiles[i]);
+            }
+
+            showLoader("Uploading & Embedding Documents (Topics deferred)...");
+
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const json = await res.json();
+
+                if (json.status === "success") {
+                    unlockFeatures();
+                    alert("Upload complete! You can now use all features.");
+                } else {
+                    alert("Error: " + json.message);
+                }
+            } catch (err) {
+                alert("Upload failed.");
+            }
+
+            hideLoader();
+        });
+
+        // Topics flow
+        async function fetchTopics() {
+            showSection('topics');
+            showLoader("Running Exam-Oriented Topic Analysis...");
+
+            try {
+                const res = await fetch('/api/topics');
+                const json = await res.json();
+
+                if (json.status === "success") {
+                    renderTopics(json.data);
+                } else {
+                    alert(json.message);
+                }
+            } catch (e) {
+                alert("Error fetching topics.");
+            }
+            hideLoader();
+        }
+
+        function renderTopics(data) {
+            const container = document.getElementById('topics-container');
+            let html = '';
+
+            const allTopics = [...data.high, ...data.medium, ...data.low];
+
+            allTopics.forEach(t => {
+                const priorityClass = t.priority.toLowerCase();
+                html += `
+                <div class="topic-card ${priorityClass}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>${t.module}</h3>
+                        <span class="topic-pill pill-${priorityClass}">${t.priority} PRIORITY</span>
+                    </div>
+                    <p style="color:#666; font-size:12px; margin-top:5px;">Based on PYQ Matches: ${t.hit_count}</p>
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor:pointer; font-weight:600; color:var(--primary);">View Exam-Focused Summary & Definitions</summary>
+                        <div class="topic-summary">${t.summary}</div>
+                    </details>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Quiz flow
+        let currentOptions = {};
+
+        async function startQuiz() {
+            showSection('quiz');
+            document.getElementById('quiz-feedback').style.display = 'none';
+            document.getElementById('quiz-container').innerHTML = '';
+            showLoader("Generating Custom MCQ...");
+
+            try {
+                const res = await fetch('/api/quiz/generate');
+                const json = await res.json();
+
+                if (json.status === "success") {
+                    renderQuestion(json.data);
+                } else {
+                    document.getElementById('quiz-container').innerHTML = `<p>${json.message}</p>`;
+                }
+            } catch (e) {
+                document.getElementById('quiz-container').innerHTML = `<p>Error generating question.</p>`;
+            }
+            hideLoader();
+        }
+
+        function renderQuestion(q) {
+            currentOptions = { 'A': q.option_A, 'B': q.option_B, 'C': q.option_C, 'D': q.option_D };
+
+            let html = `
+                <h3 style="margin-bottom: 20px; font-size: 20px;">${q.question}</h3>
+                <div id="options-box">
+                    <button class="option-btn" onclick="submitAnswer('A', this)">A) ${q.option_A}</button>
+                    <button class="option-btn" onclick="submitAnswer('B', this)">B) ${q.option_B}</button>
+                    <button class="option-btn" onclick="submitAnswer('C', this)">C) ${q.option_C}</button>
+                    <button class="option-btn" onclick="submitAnswer('D', this)">D) ${q.option_D}</button>
+                </div>
+            `;
+            document.getElementById('quiz-container').innerHTML = html;
+        }
+
+        async function submitAnswer(answerLetter, btnElement) {
+            // Disable all buttons
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+            const res = await fetch('/api/quiz/answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answer: answerLetter })
+            });
+            const json = await res.json();
+
+            if (json.data.correct) {
+                btnElement.classList.add('correct');
+            } else {
+                btnElement.classList.add('wrong');
+                // Highlight correct answer
+                const allBtns = document.querySelectorAll('.option-btn');
+                const idx = ['A', 'B', 'C', 'D'].indexOf(json.data.correct_answer);
+                if (idx >= 0) allBtns[idx].classList.add('correct');
+            }
+
+            document.getElementById('quiz-explanation').innerHTML = `<strong>Explanation:</strong> ${json.data.explanation}`;
+            document.getElementById('quiz-feedback').style.display = 'block';
+        }
+
+        // Mock paper flow
+        async function generateMock() {
+            showSection('mock');
+            document.getElementById('mock-content').innerText = "";
+            showLoader("Generating Mock Paper structured on PYQs...");
+
+            try {
+                const res = await fetch('/api/mock');
+                const json = await res.json();
+
+                if (json.status === "success") {
+                    document.getElementById('mock-content').innerText = json.data.paper;
+                } else {
+                    document.getElementById('mock-content').innerText = "Error: " + json.message;
+                }
+            } catch (e) {
+                document.getElementById('mock-content').innerText = "Error generating mock paper.";
+            }
+
+            hideLoader();
+        }
+    </script>
+</body>
+
+</html>
