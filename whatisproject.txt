@@ -1,0 +1,43 @@
+Here is a detailed breakdown of how the input works in your project, what happens first, and the overall flow of the application based on your main backend file (
+
+web_app.py
+).
+
+1. The Input Phase (What happens first)
+The entire process kicks off when a user uploads files through the /api/upload endpoint. The system expects three main inputs:
+
+Textbook (textbook.pdf): The main source material or reference book.
+Syllabus (syllabus.pdf): The curriculum document that outlines the structure and modules of the course.
+Previous Year Questions (
+
+pyq.pdf
+): One or more past exam papers used to determine which topics are historically important.
+Difficulty: A parameter (e.g., "Medium") to configure how hard the generated questions should be.
+2. Extraction & Processing (The Core Flow)
+Once the files are uploaded and saved, the backend processes them in sequence:
+
+Textbook Chunking: The text is extracted from the textbook.pdf using extract_text_from_pdf(). Because a textbook is too large to process all at once, it is broken down into smaller, manageable pieces using chunk_text().
+PYQ Question Extraction: Text is extracted from the uploaded PYQ documents. Then, a Language Model (LLM) is used via extract_questions_with_llm() to dynamically identify and isolate the actual exam questions from the messy raw text.
+Syllabus Parsing: Text is extracted from the syllabus. The extract_modules_from_syllabus() function parses this text to identify the different modules (e.g., Module 1, Module 2, etc.) and their specific descriptions.
+3. AI Analysis & Importance Scoring
+This is where the system figures out what parts of the textbook are the most important for exams.
+
+Vector Embeddings: An AI embedding model (get_embedding_model()) converts the textbook chunks, syllabus module texts, and the PYQ questions into mathematical vectors (embeddings). This allows the system to compare the "meaning" of the texts mathematically to find similarities.
+Calculating Importance: The calculate_chunk_scores() function compares the textbook chunks against the PYQ questions. If a textbook chunk contains information that closely matches a past exam question, that chunk gets a higher Importance Score.
+Module Mapping: The textbook chunks are then mapped to their respective syllabus modules based on semantic similarity (>60% match).
+Prioritization: Each syllabus module is given a combined score based on two factors:
+PYQ Score (70% weight): How many highly important textbook chunks belong to this module?
+Coverage Score (30% weight): How much total textbook material falls under this module? Based on this combined score, every module is labeled with a priority level: HIGH, MEDIUM, or LOW.
+4. Storage & Deferred Topic Analysis
+All of this processed data—the chunks, embeddings, scores, and module mappings—is saved into a large dictionary called GLOBAL_DATA in memory.
+
+Interestingly, detailed subtopic analysis doesn't happen during the initial upload. Instead, the raw text is saved for deferred processing. When the frontend later requests the topics via the /api/topics endpoint, the analyze_topics() function kicks in to break the modules down into granular subtopics based on their priority. Summaries for these topics are generated dynamically when the user specifically clicks on one (/api/topics/summary).
+
+5. Output Generation (The Final Results)
+With the data fully processed and scored, the application provides two main features:
+
+Smart Quizzes (/api/quiz/generate): When a user wants a quiz, the system uses 
+
+weighted_chunk_selection()
+. This function heavily favors picking textbook chunks that have high importance scores (i.e., topics that appeared in past exams). It then sends that chunk to an LLM (generate_single_mcq()) to create a Multiple Choice Question.
+Mock Papers (/api/mock): The system can generate a full mock exam paper using the generate_mock_paper() function, drawing on the extracted PYQs and the most relevant textbook chunks to simulate a real test.

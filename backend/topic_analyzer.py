@@ -126,6 +126,9 @@ def _extract_granular_topics(module_name: str, module_content: str) -> list[str]
     """
     Extracts a list of specific individual topics from a syllabus module description.
     """
+    if not module_content or not module_content.strip():
+        return []
+
     prompt = f"""You are an AI assistant helping to parse syllabus text.
 Below is the text for a syllabus module named '{module_name}'.
 It contains a dense list of specific topics (e.g., Waterfall Model, Agile, etc.), usually separated by commas or newlines.
@@ -164,14 +167,22 @@ Return ONLY the JSON array.
 # Public API
 # ─────────────────────────────────────────────
 
+def generate_topic_summary(topic_name: str, module_name: str, priority: str, context_text: str) -> str:
+    """Generate summary string on demand using existing context."""
+    return _generate_summary(f"{topic_name} ({module_name})", context_text, priority)
+
 def analyze_topics(
     syllabus_text: str,
     pyq_text: str,
     textbook_text: str,
+    chunk_embeddings: list | None = None,
+    pyq_questions: list | None = None,
+    pyq_embeddings: list | None = None,
+    textbook_chunks: list | None = None,
     generate_summaries: bool = True,
 ) -> list[dict]:
     """
-    Main entry point. Given raw text from all three PDFs, returns:
+    Main entry point. Given raw text from all three PDFs or precomputed subsets, returns:
 
     [
       {
@@ -188,16 +199,23 @@ def analyze_topics(
     Set generate_summaries=False to skip LLM calls (faster, no summaries).
     """
 
+    if not syllabus_text or not syllabus_text.strip():
+        # Optional: Log warning about empty syllabus
+        print("⚠ Warning: Syllabus text is empty. Topic analyzer cannot proceed.")
+        return []
+
     # ── 1. Parse inputs ──────────────────────────────────────────────────────
     modules: dict[str, str] = extract_modules_from_syllabus(syllabus_text)
     if not modules:
         return []
 
-    pyq_questions: list[str] = extract_questions_with_regex(pyq_text)
-    if not pyq_questions:
-        pyq_questions = [pyq_text[:2000]]
+    if pyq_questions is None:
+        pyq_questions = extract_questions_with_regex(pyq_text)
+        if not pyq_questions:
+            pyq_questions = [pyq_text[:2000]]
 
-    textbook_chunks: list[str] = chunk_text(textbook_text, chunk_size=350, overlap=60)
+    if textbook_chunks is None:
+        textbook_chunks = chunk_text(textbook_text, chunk_size=350, overlap=60)
     
     # ── 1.5 Extract granular topics ──────────────────────────────────────────
     print("🔬 Extracting specific syllabus topics from modules...")
@@ -222,8 +240,12 @@ def analyze_topics(
     topic_texts = [t["topic"] for t in granular_topics]
 
     topic_embeddings = embedding_model.embed_documents(topic_texts)
-    pyq_embeddings = embedding_model.embed_documents(pyq_questions)
-    chunk_embeddings = embedding_model.embed_documents(textbook_chunks)
+    
+    if pyq_embeddings is None:
+        pyq_embeddings = embedding_model.embed_documents(pyq_questions)
+        
+    if chunk_embeddings is None:
+        chunk_embeddings = embedding_model.embed_documents(textbook_chunks)
 
     print(f"   → {len(topic_texts)} granular topics | {len(pyq_questions)} PYQ questions | {len(textbook_chunks)} textbook chunks")
 
@@ -265,10 +287,37 @@ def analyze_topics(
     priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     scored_topics.sort(key=lambda x: (priority_order[x["priority"]], -x["score"]))
     
-    # ── 5.5 Limit to Top 10 Topics ───────────────────────────────────────────
-    top_10_topics = scored_topics[:10]
+    # ── 5.5 Limit to Top 10 Topics with mixed priorities ─────────────────────
+    high_topics = [t for t in scored_topics if t["priority"] == "HIGH"]
+    med_topics  = [t for t in scored_topics if t["priority"] == "MEDIUM"]
+    low_topics  = [t for t in scored_topics if t["priority"] == "LOW"]
+    
+    selected_high = high_topics[:5]
+    selected_med  = med_topics[:3]
+    selected_low  = low_topics[:2]
+    
+    rem_high = high_topics[5:]
+    rem_med  = med_topics[3:]
+    rem_low  = low_topics[2:]
+    
+    missing = 10 - (len(selected_high) + len(selected_med) + len(selected_low))
+    if missing > 0:
+        add_high = rem_high[:missing]
+        selected_high.extend(add_high)
+        missing -= len(add_high)
+    if missing > 0:
+        add_med = rem_med[:missing]
+        selected_med.extend(add_med)
+        missing -= len(add_med)
+    if missing > 0:
+        add_low = rem_low[:missing]
+        selected_low.extend(add_low)
+        missing -= len(add_low)
+        
+    top_10_topics = selected_high + selected_med + selected_low
+    top_10_topics.sort(key=lambda x: (priority_order[x["priority"]], -x["score"]))
 
-    # ── 6. Generate summaries (optional) ─────────────────────────────────────
+    # ── 6. Extract contexts and generate summaries (optional) ────────────────
     results = []
     for t_info in top_10_topics:
         topic_name = t_info["topic"]
@@ -278,14 +327,15 @@ def analyze_topics(
         
         print(f"   → Processing: {topic_name} [{module_name}] ({priority})...")
 
+        context_text = _find_relevant_textbook_chunks(
+            topic_embeddings[orig_i],
+            chunk_embeddings,
+            textbook_chunks,
+            top_k=4,
+        )
+
         summary = ""
         if generate_summaries:
-            context_text = _find_relevant_textbook_chunks(
-                topic_embeddings[orig_i],
-                chunk_embeddings,
-                textbook_chunks,
-                top_k=4,
-            )
             summary = _generate_summary(f"{topic_name} ({module_name})", context_text, priority)
 
         # We keep the "module" key as it is expected by topics.html, but we set it to the topic_name.
@@ -296,6 +346,7 @@ def analyze_topics(
             "score":     round(t_info["score"], 3),
             "hit_count": t_info["hit_count"],
             "avg_sim":   round(t_info["avg_sim"], 3),
+            "context":   context_text,
             "summary":   summary,
         })
 

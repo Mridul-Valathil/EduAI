@@ -11,7 +11,7 @@ from pyq_engine.pyq_parser import extract_questions_with_regex, extract_question
 from importance_engine.importance_calculator import calculate_chunk_scores
 from generation.mcq_generator import generate_single_mcq
 from generation.mock_generator import generate_mock_paper
-from topic_analyzer import analyze_topics
+from topic_analyzer import analyze_topics, generate_topic_summary
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -63,7 +63,6 @@ def api_upload():
         textbook_file = request.files["textbook"]
         pyq_files = request.files.getlist("pyq")
         syllabus_file = request.files["syllabus"]
-        difficulty = request.form.get("difficulty", "Medium")
 
         textbook_path = os.path.join(UPLOAD_FOLDER, "textbook.pdf")
         syllabus_path = os.path.join(UPLOAD_FOLDER, "syllabus.pdf")
@@ -165,6 +164,11 @@ def api_upload():
         GLOBAL_DATA["modules"] = modules
         GLOBAL_DATA["module_mapping"] = module_mapping
         
+        # Save precomputed embeddings to avoid re-computation in topics
+        GLOBAL_DATA["chunk_embeddings"] = chunk_embeddings
+        GLOBAL_DATA["pyq_questions"] = questions
+        GLOBAL_DATA["pyq_embeddings"] = pyq_embeddings
+
         # Save raw texts for deferred processing
         GLOBAL_DATA["syllabus_text"] = syllabus_text
         GLOBAL_DATA["pyq_text"] = pyq_text
@@ -174,7 +178,6 @@ def api_upload():
         GLOBAL_DATA["topic_analysis"] = None
 
         session["uploaded"] = True
-        session["difficulty"] = difficulty
         
         return jsonify({"status": "success", "message": "Files processed successfully"})
         
@@ -195,7 +198,11 @@ def api_topics():
                 syllabus_text=GLOBAL_DATA["syllabus_text"],
                 pyq_text=GLOBAL_DATA["pyq_text"],
                 textbook_text=GLOBAL_DATA["textbook_text"],
-                generate_summaries=True,
+                chunk_embeddings=GLOBAL_DATA.get("chunk_embeddings"),
+                pyq_questions=GLOBAL_DATA.get("pyq_questions"),
+                pyq_embeddings=GLOBAL_DATA.get("pyq_embeddings"),
+                textbook_chunks=GLOBAL_DATA.get("chunks"),
+                generate_summaries=False,
             )
             GLOBAL_DATA["topic_analysis"] = topic_results
         else:
@@ -217,6 +224,35 @@ def api_topics():
     })
 
 
+@app.route("/api/topics/summary", methods=["POST"])
+def api_topic_summary():
+    data = request.json
+    topic_name = data.get("topic")
+    
+    topic_analysis = GLOBAL_DATA.get("topic_analysis")
+    if not topic_analysis:
+        return jsonify({"status": "error", "message": "No topic data available."}), 400
+        
+    topic_data = next((t for t in topic_analysis if t["module"] == topic_name), None)
+    
+    if not topic_data:
+        return jsonify({"status": "error", "message": "Topic not found."}), 404
+        
+    if topic_data.get("summary"):
+        return jsonify({"status": "success", "data": {"summary": topic_data["summary"]}})
+        
+    module_name = topic_data.get("topics", "").replace("Part of ", "")
+    priority = topic_data.get("priority")
+    context_text = topic_data.get("context", "")
+    
+    try:
+        summary = generate_topic_summary(topic_name, module_name, priority, context_text)
+        topic_data["summary"] = summary
+        return jsonify({"status": "success", "data": {"summary": summary}})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/api/quiz/generate", methods=["GET"])
 def api_quiz_generate():
     if GLOBAL_DATA.get("chunks") is None:
@@ -224,7 +260,7 @@ def api_quiz_generate():
 
     chunks = GLOBAL_DATA["chunks"]
     chunk_scores = GLOBAL_DATA["chunk_scores"]
-    difficulty = session.get("difficulty", "Medium")
+    difficulty = request.args.get("difficulty", "Medium")
 
     question = None
     for _ in range(5):  # retry up to 5 times
@@ -307,4 +343,4 @@ def api_mock():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8000, debug=True)
+    app.run(host="127.0.0.1", port=9000, debug=True)

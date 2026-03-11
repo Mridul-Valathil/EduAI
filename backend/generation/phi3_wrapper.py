@@ -15,13 +15,14 @@
 import ollama
 
 
-def generate_with_phi3(prompt, temperature=0.1):
+def generate_with_phi3(prompt, temperature=0.1, max_tokens=512):
     """
     Generates text using Phi-3 Mini via Ollama Python API.
 
     Args:
         prompt (str): The input prompt.
         temperature (float): Controls randomness (default 0.1 for stable JSON).
+        max_tokens (int): Maximum length of generated text.
 
     Returns:
         str: Generated response text.
@@ -36,7 +37,7 @@ def generate_with_phi3(prompt, temperature=0.1):
             options={
                 "temperature": temperature,
                 "top_p": 0.9,
-                "num_predict": 512   # limit generation length
+                "num_predict": max_tokens   # limit generation length
             }
         )
 

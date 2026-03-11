@@ -8,13 +8,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --surface: rgba(255, 255, 255, 0.4);
-            --surface-hover: rgba(255, 255, 255, 0.6);
+            --primary: #4F46E5;
+            /* Deeper indigo */
+            --primary-hover: #4338CA;
+            --secondary: #ec4899;
+            /* Vibrant pink */
+            --bg-start: #fdfbfb;
+            --bg-end: #ebedee;
+            --surface: rgba(255, 255, 255, 0.7);
+            --surface-hover: rgba(255, 255, 255, 0.9);
             --border: rgba(255, 255, 255, 0.5);
-            --text-dark: #1f2937;
-            --text-light: #4b5563;
+            --text-dark: #111827;
+            --text-light: #6B7280;
+            --success: #10B981;
+            --error: #EF4444;
         }
 
         * {
@@ -25,7 +32,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -129,6 +136,58 @@
             }
         }
 
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+            background: var(--surface-hover);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
         .section {
             display: none;
         }
@@ -198,13 +257,14 @@
             transition: all 0.3s;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
             margin-top: 10px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+            background: linear-gradient(135deg, var(--primary-hover), var(--secondary));
         }
 
         .btn:disabled {
@@ -221,7 +281,7 @@
         }
 
         .btn-outline:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(79, 70, 229, 0.1);
         }
 
         /* Loading Overlay Overlay */
@@ -356,7 +416,7 @@
         <div class="nav-links" id="nav-actions">
             <button class="nav-btn active" onclick="showSection('home')">Home</button>
             <button class="nav-btn" onclick="fetchTopics()" id="nav-topics" style="display:none;">Topics</button>
-            <button class="nav-btn" onclick="startQuiz()" id="nav-quiz" style="display:none;">Quiz</button>
+            <button class="nav-btn" onclick="showQuizSection()" id="nav-quiz" style="display:none;">Quiz</button>
             <button class="nav-btn" onclick="generateMock()" id="nav-mock" style="display:none;">Mock Paper</button>
         </div>
     </nav>
@@ -367,8 +427,46 @@
     </div>
 
     <main>
-        <!-- Home / Upload Section -->
-        <section id="home" class="section glass-card active">
+        <!-- Home / Landing Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <h1>Master Your Curriculum with AI</h1>
+                <p>Upload your syllabus, textbook, and past questions to instantly generate prioritized study topics,
+                    tailored quizzes, and predictive mock exams.</p>
+                <button class="btn" style="max-width: 250px; margin-top: 30px;" onclick="showSection('upload')">Start
+                    Learning Now</button>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-box">
+                    <div class="feature-icon">📚</div>
+                    <h3>Smart Uploads</h3>
+                    <p style="margin-top:10px; color:var(--text-light); font-size: 14px;">Fast processing of dense
+                        textbooks and raw exam papers.</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Topic Priority</h3>
+                    <p style="margin-top:10px; color:var(--text-light); font-size: 14px;">AI tells you exactly what to
+                        study based on PYQ semantic matching.</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">⚡️</div>
+                    <h3>Adaptive Quizzes</h3>
+                    <p style="margin-top:10px; color:var(--text-light); font-size: 14px;">Dynamic MCQ generation
+                        targeting high-yield syllabus areas.</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">📝</div>
+                    <h3>Predictive Mocks</h3>
+                    <p style="margin-top:10px; color:var(--text-light); font-size: 14px;">Full-length exams generated to
+                        match your university's pattern.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload" class="section glass-card">
             <h2 class="title">Upload Materials</h2>
             <p class="subtitle">Provide your curriculum files to generate personalized insights and assessments.</p>
 
@@ -388,15 +486,6 @@
                     <input type="file" id="pyq" accept=".pdf" multiple class="file-drop" required style="width:100%">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Quiz Difficulty Level</label>
-                    <select id="difficulty">
-                        <option value="Easy">Easy</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                </div>
-
                 <button type="submit" class="btn">Process Documents</button>
             </form>
         </section>
@@ -410,14 +499,51 @@
 
         <!-- Quiz Section -->
         <section id="quiz" class="section glass-card">
-            <h2 class="title" id="quiz-title">Skill Assessment</h2>
-            <div id="quiz-container"></div>
-            <div id="quiz-feedback" style="margin-top: 20px; display: none;">
-                <p id="quiz-explanation"
-                    style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                </p>
-                <button class="btn" onclick="startQuiz()">Next Question</button>
+
+            <div id="quiz-setup">
+                <h2 class="title">Skill Assessment Setup</h2>
+                <p class="subtitle">Customize your practice session.</p>
+                <div class="form-group">
+                    <label class="form-label">Questions</label>
+                    <select id="quiz-num-questions">
+                        <option value="5" selected>5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="15">15 Questions</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Difficulty</label>
+                    <select id="quiz-difficulty">
+                        <option value="Easy">Easy</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="initializeQuiz()">Start Quiz</button>
             </div>
+
+            <div id="quiz-active" style="display: none;">
+                <div
+                    style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; color: var(--primary);">
+                    <span id="quiz-progress">Question 1 of 5</span>
+                    <span id="quiz-score-display">Score: 0</span>
+                </div>
+                <div id="quiz-container"></div>
+                <div id="quiz-feedback" style="margin-top: 20px; display: none;">
+                    <p id="quiz-explanation"
+                        style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    </p>
+                    <button class="btn" id="quiz-next-btn" onclick="loadNextQuestion()">Next Question</button>
+                </div>
+            </div>
+
+            <div id="quiz-result" style="display: none; text-align: center;">
+                <h2 class="title">Quiz Complete!</h2>
+                <div style="font-size: 64px; margin: 20px 0;">🎯</div>
+                <h3 id="final-score-text" style="font-size: 24px; margin-bottom: 30px;">You scored X out of Y</h3>
+                <button class="btn btn-outline" onclick="resetQuiz()">Take Another Quiz</button>
+            </div>
+
         </section>
 
         <!-- Mock Paper Section -->
@@ -470,7 +596,6 @@
             const formData = new FormData();
             formData.append('textbook', document.getElementById('textbook').files[0]);
             formData.append('syllabus', document.getElementById('syllabus').files[0]);
-            formData.append('difficulty', document.getElementById('difficulty').value);
 
             const pyqFiles = document.getElementById('pyq').files;
             for (let i = 0; i < pyqFiles.length; i++) {
@@ -524,6 +649,7 @@
 
             allTopics.forEach(t => {
                 const priorityClass = t.priority.toLowerCase();
+                const safeTopicName = t.module.replace(/'/g, "\\'").replace(/"/g, "&quot;");
                 html += `
                 <div class="topic-card ${priorityClass}">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -531,9 +657,14 @@
                         <span class="topic-pill pill-${priorityClass}">${t.priority} PRIORITY</span>
                     </div>
                     <p style="color:#666; font-size:12px; margin-top:5px;">Based on PYQ Matches: ${t.hit_count}</p>
-                    <details style="margin-top: 15px;">
+                    <details style="margin-top: 15px;" ontoggle="fetchSummary(this, '${safeTopicName}')" ${t.summary ? 'data-loaded="true"' : ''}>
                         <summary style="cursor:pointer; font-weight:600; color:var(--primary);">View Exam-Focused Summary & Definitions</summary>
-                        <div class="topic-summary">${t.summary}</div>
+                        <div class="topic-summary">
+                            ${t.summary ? t.summary : `
+                            <div class="summary-loader" style="display:none; color:var(--primary); font-size:14px; font-weight:bold;">Generating summary... <div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-left:5px;"></div></div>
+                            <span class="summary-content"></span>
+                            `}
+                        </div>
                     </details>
                 </div>`;
             });
@@ -541,17 +672,84 @@
             container.innerHTML = html;
         }
 
+        async function fetchSummary(detailsEl, topicName) {
+            if (detailsEl.open && !detailsEl.dataset.loaded) {
+                const loader = detailsEl.querySelector('.summary-loader');
+                const content = detailsEl.querySelector('.summary-content');
+                loader.style.display = 'block';
+                content.innerText = '';
+
+                try {
+                    const res = await fetch('/api/topics/summary', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ topic: topicName })
+                    });
+                    const json = await res.json();
+                    if (json.status === "success") {
+                        content.innerHTML = json.data.summary;
+                        detailsEl.dataset.loaded = 'true';
+                    } else {
+                        content.innerText = 'Error: ' + json.message;
+                    }
+                } catch (e) {
+                    content.innerText = 'Error loading summary.';
+                } finally {
+                    loader.style.display = 'none';
+                }
+            }
+        }
+
         // Quiz flow
         let currentOptions = {};
+        let quizState = {
+            totalQuestions: 5,
+            currentQuestionIndex: 0,
+            score: 0,
+            difficulty: "Medium"
+        };
 
-        async function startQuiz() {
-            showSection('quiz');
+        function resetQuiz() {
+            document.getElementById('quiz-setup').style.display = 'block';
+            document.getElementById('quiz-active').style.display = 'none';
+            document.getElementById('quiz-result').style.display = 'none';
+        }
+
+        function initializeQuiz() {
+            quizState.totalQuestions = parseInt(document.getElementById('quiz-num-questions').value);
+            quizState.difficulty = document.getElementById('quiz-difficulty').value;
+            quizState.currentQuestionIndex = 0;
+            quizState.score = 0;
+
+            document.getElementById('quiz-setup').style.display = 'none';
+            document.getElementById('quiz-result').style.display = 'none';
+            document.getElementById('quiz-active').style.display = 'block';
+
+            updateQuizUI();
+            loadNextQuestion();
+        }
+
+        function updateQuizUI() {
+            document.getElementById('quiz-progress').innerText = `Question ${quizState.currentQuestionIndex + 1} of ${quizState.totalQuestions}`;
+            document.getElementById('quiz-score-display').innerText = `Score: ${quizState.score}`;
+            document.getElementById('quiz-next-btn').innerText = (quizState.currentQuestionIndex >= quizState.totalQuestions - 1) ? "Finish Quiz" : "Next Question";
+        }
+
+        async function loadNextQuestion() {
+            // Check if quiz is over
+            if (quizState.currentQuestionIndex >= quizState.totalQuestions) {
+                document.getElementById('quiz-active').style.display = 'none';
+                document.getElementById('quiz-result').style.display = 'block';
+                document.getElementById('final-score-text').innerText = `You scored ${quizState.score} out of ${quizState.totalQuestions}`;
+                return;
+            }
+
             document.getElementById('quiz-feedback').style.display = 'none';
             document.getElementById('quiz-container').innerHTML = '';
-            showLoader("Generating Custom MCQ...");
+            showLoader(`Generating MCQ ${quizState.currentQuestionIndex + 1}...`);
 
             try {
-                const res = await fetch('/api/quiz/generate');
+                const res = await fetch(`/api/quiz/generate?difficulty=${quizState.difficulty}`);
                 const json = await res.json();
 
                 if (json.status === "success") {
@@ -581,7 +779,7 @@
         }
 
         async function submitAnswer(answerLetter, btnElement) {
-            // Disable all buttons
+            // Disable all buttons to prevent multiple clicks
             document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
 
             const res = await fetch('/api/quiz/answer', {
@@ -593,6 +791,8 @@
 
             if (json.data.correct) {
                 btnElement.classList.add('correct');
+                quizState.score += 1; // Increment score counter
+                document.getElementById('quiz-score-display').innerText = `Score: ${quizState.score}`;
             } else {
                 btnElement.classList.add('wrong');
                 // Highlight correct answer
@@ -601,8 +801,20 @@
                 if (idx >= 0) allBtns[idx].classList.add('correct');
             }
 
+            // Move pointer forward for next call
+            quizState.currentQuestionIndex += 1;
+
             document.getElementById('quiz-explanation').innerHTML = `<strong>Explanation:</strong> ${json.data.explanation}`;
             document.getElementById('quiz-feedback').style.display = 'block';
+        }
+
+        // To make sure NavBar -> Quiz link shows the wrapper properly:
+        function showQuizSection() {
+            showSection('quiz');
+            // Check if active or setup should be shown. Let's default to showing setup if not active.
+            if (document.getElementById('quiz-active').style.display === 'none' && document.getElementById('quiz-result').style.display === 'none') {
+                resetQuiz();
+            }
         }
 
         // Mock paper flow
