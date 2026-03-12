@@ -744,6 +744,8 @@
                 return;
             }
 
+            updateQuizUI(); // Added to correctly display current question out of total
+
             document.getElementById('quiz-feedback').style.display = 'none';
             document.getElementById('quiz-container').innerHTML = '';
             showLoader(`Generating MCQ ${quizState.currentQuestionIndex + 1}...`);

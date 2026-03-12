@@ -106,17 +106,20 @@ def _generate_summary(module_name: str, context: str, priority: str) -> str:
     The priority label is passed in so the prompt can emphasize exam relevance.
     """
     prompt = f"""You are an expert academic tutor.
-Topic: {module_name}
+Your task is to write a clear and concise EXAM-FOCUSED explanation for the specific topic: "{module_name}".
 
-Below is relevant textbook content for this topic:
+Below is textbook content that may be relevant:
 ---
 {context[:1800]}
 ---
 
-Write a clear and concise EXAM-FOCUSED explanation of this topic.
-Provide strict definitions and key points from the text.
-Do NOT include any extra preamble, study advice, or suggestions.
-Just the facts, definitions, and points. Do not say "Here are the points...".
+Instructions:
+1. Provide a strict definition and key points ONLY for "{module_name}".
+2. Use the provided textbook content if it contains information about the topic.
+3. If the textbook content does NOT contain information about this specific topic, ignore the text and provide the explanation using your own expert knowledge.
+4. DO NOT explain other topics that happen to be in the text.
+5. Do NOT include any extra preamble, study advice, or suggestions.
+6. Just the facts, definitions, and points. Do not say "Here are the points...".
 """
 
     result = generate_with_phi3(prompt, temperature=0.2)
